@@ -1,0 +1,7 @@
+
+%experimentarEELM
+experimentarELM
+experimentarLDA
+experimentarLDAPCA
+%experimentarOPELM
+experimentarPCA

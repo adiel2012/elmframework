@@ -1,0 +1,204 @@
+%function [TrainingTime, TrainingAccuracy, TestingAccuracy] = ...
+function [TrainingTime, ConfusionMatrixTrain, ConfusionMatrixTest, CCRTrain, MSTrain, CCRTest, MSTest...
+    	NumberofInputNeurons,NumberofHiddenNeurons,NumberofHiddenNeuronsFinal,NumberofOutputNeurons,InputWeight,OutputWeight,pstar_train] = ...
+    ldaelm(train_data, test_data, Elm_Type, NumberofHiddenNeurons, ActivationFunction,  wMin, wMax)
+
+
+%%%%%%%%%%% Macro definition
+REGRESSION=0;
+CLASSIFIER=1;
+
+%%%%%%%%%%% Load training dataset
+%train_data=load(TrainingData_File);
+T=train_data(:,1)';
+P=train_data(:,2:size(train_data,2))';
+clear train_data;                                   %   Release raw training data array
+
+%%%%%%%%%%% Load testing dataset
+%test_data=load(TestingData_File);
+TV.T=test_data(:,1)';
+TV.P=test_data(:,2:size(test_data,2))';
+clear test_data;                                    %   Release raw testing data array
+
+%%%%%%%%%%% Filter unmeaninful attributes
+offset = 0;
+attrs = size(P,1);
+
+while offset  < attrs
+    offset = offset + 1;
+    if (max(P(offset,:)) == min(P(offset,:)))
+        % Delete attribute both in train and test sets
+        P(offset,:) = [];
+        TV.P(offset,:) = [];
+        offset = offset-1;
+        attrs = attrs-1;
+    end
+end
+        
+NumberofTrainingData=size(P,2);
+NumberofTestingData=size(TV.P,2);
+NumberofInputNeurons=size(P,1);
+
+if Elm_Type~=REGRESSION
+    %%%%%%%%%%%% Preprocessing the data of classification
+    sorted_target=sort(cat(2,T,TV.T),2);
+    label=zeros(1,1);                               %   Find and save in 'label' class label from training and testing data sets
+    label(1,1)=sorted_target(1,1);
+    j=1;
+    for i = 2:(NumberofTrainingData+NumberofTestingData)
+        if sorted_target(1,i) ~= label(1,j)
+            j=j+1;
+            label(1,j) = sorted_target(1,i);
+        end
+    end
+    number_class=j;
+    NumberofOutputNeurons=number_class;
+    
+    %%%%%%%%%% Processing the targets of training
+    nOfPatterns = zeros(number_class,1);
+    temp_T=zeros(NumberofOutputNeurons, NumberofTrainingData);
+    for i = 1:NumberofTrainingData
+        for j = 1:number_class
+            if label(1,j) == T(1,i)
+                nOfPatterns(j,1) = nOfPatterns(j,1) + 1;
+                break; 
+            end
+        end
+        temp_T(j,i)=1;
+    end
+    T_org = T';
+    T=temp_T*2-1;
+    
+    pstar_train = min(nOfPatterns) / NumberofTrainingData;
+
+    %%%%%%%%%% Processing the targets of testing
+    temp_TV_T=zeros(NumberofOutputNeurons, NumberofTestingData);
+    for i = 1:NumberofTestingData
+        for j = 1:number_class
+            if label(1,j) == TV.T(1,i)
+                break; 
+            end
+        end
+        temp_TV_T(j,i)=1;
+    end
+    TV_org = TV.T';
+    TV.T=temp_TV_T*2-1;
+
+end                                                 %   end if of Elm_Type
+
+%%%%%%%%%%% Calculate weights & biases
+%start_time_train=cputime;
+tStart = tic;
+
+%------Perform log(P) calculation once for UP
+if strcmp(ActivationFunction, 'up')
+    P = log(P);
+    TV.P = log(TV.P);
+end
+
+%%%%%%%%%%% Calculate the hidden node output (training)
+
+
+
+tg = T';
+[FF,CC] = size(tg);
+gnd = zeros(FF,1);
+for ind=1:FF
+   gnd(ind) = find( tg(ind,:)==1,1) ; 
+end
+   options = [];
+    options.Fisherface = 1;
+   % options.Regu = 1;
+    %options.PCARatio = 0.9; % el 90 porciento de la varianza
+   [eigvector, eigvalue] = LDA(gnd', options, P');       
+   InputWeight = eigvector';      
+   NumberofHiddenNeuronsFinal = size(eigvalue);
+   NumberofHiddenNeuronsFinal = NumberofHiddenNeuronsFinal(1) ;
+   
+   tempH=InputWeight*P;
+ 
+
+
+   
+   %  tempH = [tempH' atempH']';
+  % size(tempH)
+  
+  %fgf
+        
+%%%%%%%%%%% Calculate hidden neuron output matrix H
+switch lower(ActivationFunction)
+    case {'sig','sigmoid'}
+        %%%%%%%% Sigmoid 
+        H = 1 ./ (1 + exp(-tempH));
+        %%%%%%%% More activation functions can be added here
+    case {'up'}
+        %%%%%%%% Product Unit
+        H = exp(tempH);
+        %%%%%%%%
+     
+end
+%COMENTADO clear P;
+
+clear tempH;                                        %   Release the temnormMinrary array for calculation of hidden neuron output matrix H
+
+
+%%%%%%%%%%% Calculate output weights OutputWeight (beta_i)
+OutputWeight=pinv(H') * T';                        % slower implementation
+TrainingTime = toc(tStart);
+
+%%%%%%%%%%% Calculate the training accuracy
+Y=(H' * OutputWeight)';                             %   Y: the actual output of the training data
+if Elm_Type == REGRESSION
+    TrainingAccuracy=sqrt(mse(T - Y));               %   Calculate training accuracy (RMSE) for regression case
+end
+clear H;
+
+%%%%%%%%%%% Calculate the output of testing input
+start_time_test=cputime;
+
+%%%%%%%%%%% Calculate the Hidden node output 
+tempH_test=InputWeight*TV.P;
+
+switch lower(ActivationFunction)
+    case {'sig','sigmoid'}
+        %%%%%%%% Sigmoid 
+       H_test = 1 ./ (1 + exp(-tempH_test));
+    case {'up'}
+        %%%%%%%% Product Unit
+        H_test = exp(-tempH_test);
+end
+
+clear TV.P;             %   Release input of testing data
+
+
+TY=(H_test' * OutputWeight)';                       %   TY: the actual output of the testing data
+
+end_time_test=cputime;
+TestingTime=end_time_test-start_time_test;           %   Calculate CPU time (seconds) spent by ELM predicting the whole testing data
+
+clear H_test;
+
+if Elm_Type == REGRESSION
+    TestingAccuracy=sqrt(mse(TV.T - TY));            %   Calculate testing accuracy (RMSE) for regression case
+end
+
+if Elm_Type == CLASSIFIER
+    
+    [winnerTrain LabelTrainPredicted] = max(Y);
+    [winnerTest LabelTestPredicted] = max(TY);
+
+    LabelTrainPredicted = LabelTrainPredicted';
+    LabelTrainPredicted = LabelTrainPredicted -1;
+    LabelTestPredicted = LabelTestPredicted';
+    LabelTestPredicted = LabelTestPredicted -1;
+    
+    ConfusionMatrixTrain = confmat(T_org,LabelTrainPredicted);
+    ConfusionMatrixTest = confmat(TV_org,LabelTestPredicted);
+    
+    CCRTrain = CCR(ConfusionMatrixTrain)*100;
+    CCRTest = CCR(ConfusionMatrixTest)*100;
+
+    MSTrain = Sensitivity(ConfusionMatrixTrain)*100;
+    MSTest = Sensitivity(ConfusionMatrixTest)*100;
+end
+    
