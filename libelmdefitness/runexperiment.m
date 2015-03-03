@@ -152,11 +152,23 @@ if (EE.ielm)
       
 end
 
-%% I-ELM
+%% P-ELM
 if (EE.pelm)
     
     disp(['P-ELM']);
     EE.elmAlgorithm = 'pelm';
+    
+   
+    logLevel = 2;
+    eelm_experiment(EE,train_data,test_data,logLevel);
+      
+end
+
+%% EM-ELM
+if (EE.pelm)
+    
+    disp(['EM-ELM']);
+    EE.elmAlgorithm = 'em_elm';
     
    
     logLevel = 2;
