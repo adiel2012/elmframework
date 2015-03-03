@@ -166,7 +166,23 @@ if strcmp(EE.db, 'holdout')
                         ielm(train_data, test_data, 1, EE.nhidden, EE.nnbase, EE.wMin, EE.wMax);
                 end
             end
-       
+       case {'pelm'}
+            if EE.multicore
+                parfor it = 1:EE.repeatfold
+                    [TrainingTime(it), ConfusionMatrixTrain{it,1}, ConfusionMatrixTest{it,1},...
+                        CCRTrain(it), MSTrain(it), CCRTest(it), MSTest(it),...
+                        NumberofInputNeurons(it),NumberofHiddenNeurons(it),NumberofHiddenNeuronsFinal(it),NumberofOutputNeurons(it),InputWeight{it,1},OutputWeight{it,1}] = ...
+                        pelm(train_data, test_data, 1, EE.nhidden, EE.nnbase, EE.wMin, EE.wMax);
+                end
+            else
+                for it = 1:EE.repeatfold
+                    [TrainingTime(it), ConfusionMatrixTrain{it,1}, ConfusionMatrixTest{it,1},...
+                        CCRTrain(it), MSTrain(it), CCRTest(it), MSTest(it),...
+                        NumberofInputNeurons(it),NumberofHiddenNeurons(it),NumberofHiddenNeuronsFinal(it),NumberofOutputNeurons(it),InputWeight{it,1},OutputWeight{it,1}] = ...
+                        pelm(train_data, test_data, 1, EE.nhidden, EE.nnbase, EE.wMin, EE.wMax);
+                end
+            end
+            
         case {'opelm'}
             if EE.multicore
                 parfor it = 1:EE.repeatfold
@@ -209,7 +225,7 @@ switch lower(EE.elmAlgorithm)
     case {'eelm','elm'}
         EEStats.nhidden = EE.nhidden;
         EEStats.nhiddenFinal = EE.nhidden
-    case{'opelm','pcaelm','ldaelm','pcaldaelm','ielm'}
+    case{'opelm','pcaelm','ldaelm','pcaldaelm','ielm','pelm'}
         EEStats.nhidden = EE.nhidden;
         EEStats.nhiddenFinal = mean(NumberofHiddenNeuronsFinal);
 end

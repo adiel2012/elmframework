@@ -152,6 +152,18 @@ if (EE.ielm)
       
 end
 
+%% I-ELM
+if (EE.pelm)
+    
+    disp(['P-ELM']);
+    EE.elmAlgorithm = 'pelm';
+    
+   
+    logLevel = 2;
+    eelm_experiment(EE,train_data,test_data,logLevel);
+      
+end
+
 %% Cerrar piscina de hebras de matlab
 if EE.multicore
  isOpen = matlabpool('size') > 0;
