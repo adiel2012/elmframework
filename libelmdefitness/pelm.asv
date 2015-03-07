@@ -329,19 +329,36 @@ end
 percent = 0.75;
 numpatterns = size(H,2);
 numhiddenneurons = size(H,1);
+
+
 csp = floor(percent*numpatterns);
 indices= randperm(numpatterns);
+indicesT=indices(1:csp);
+indicesC=indices(csp+1:numpatterns);
 
 
+Tone = zeros(numpatterns,1);
+for i = 1 : numpatterns
+   
+    mm = find(T(:,i)==1);
+    mm = mm(1);    
+    Tone(i) = mm;
+end
+cv = cvpartition(Tone, 'holdout', percent);
+indicesC=(find(cv.test==1));
+indicesT=(find(cv.test==0));
+indices=[]
 
 
-HT = H(:,indices(1:csp)) ;
-HC = H(:,indices(csp+1:numpatterns));
+HT = H(:,indicesT) ;
+HC = H(:,indicesC);
 NumpatternsComprobation = numpatterns - csp;
 
 
-TT = T(:,indices(1:csp));
-TC = T(:,indices(csp+1:numpatterns));
+
+
+TT = T(:,indicesT);
+TC = T(:,indicesC);
 
 
 %load iris.dat

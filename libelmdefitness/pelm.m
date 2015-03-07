@@ -329,29 +329,40 @@ end
 percent = 0.75;
 numpatterns = size(H,2);
 numhiddenneurons = size(H,1);
-csp = floor(percent*numpatterns);
-indices= randperm(numpatterns);
 
 
+%csp = floor(percent*numpatterns);
+%NumpatternsComprobation = numpatterns - csp;
+%indices= randperm(numpatterns);
+%indicesT=indices(1:csp);
+%indicesC=indices(csp+1:numpatterns);
 
-TTone = zeros(csp,1);
-for i = 1 : csp
+
+Tone = zeros(numpatterns,1);
+for i = 1 : numpatterns
    
     mm = find(T(:,i)==1);
     mm = mm(1);    
-    TTone(i) = mm;
+    Tone(i) = mm;
 end
-
-
-
-
-HT = H(:,indices(1:csp)) ;
-HC = H(:,indices(csp+1:numpatterns));
+cv = cvpartition(Tone, 'holdout', percent);
+indicesC=(find(cv.test==0));
+indicesT=(find(cv.test==1));
+indices=[indicesT' indicesC']';
+csp=size(indicesT,1);
 NumpatternsComprobation = numpatterns - csp;
 
 
-TT = T(:,indices(1:csp));
-TC = T(:,indices(csp+1:numpatterns));
+
+HT = H(:,indicesT) ;
+HC = H(:,indicesC);
+
+
+
+
+
+TT = T(:,indicesT);
+TC = T(:,indicesC);
 
 
 %load iris.dat
@@ -470,8 +481,7 @@ for i = numhiddenneurons-1: -1 : 2 % proposed in paper
             fffff=3;
         end
         
-        aCCR = CCR(CM); %*100
-        
+        aCCR = CCR(CM); %*100        
         S_i = numhiddenneurons-i+1;
         asigma_square=(1-aCCR)*(1-aCCR)* NumpatternsComprobation*NumpatternsComprobation; 
         AIC = 2*NumpatternsComprobation*log(asigma_square/NumpatternsComprobation)+S_i;
@@ -491,7 +501,7 @@ end
 H=H(MinAICNeuronQuantityI:numhiddenneurons,:);
 InputWeight=InputWeight(MinAICNeuronQuantityI:numhiddenneurons,:);            
 BiasofHiddenNeurons=BiasofHiddenNeurons(MinAICNeuronQuantityI:numhiddenneurons,:);            
-NumberofHiddenNeuronsFinal= numhiddenneurons - MinAICNeuronQuantityI+1   
+NumberofHiddenNeuronsFinal= numhiddenneurons - MinAICNeuronQuantityI+1;   
 
 
 clear tempH;                                        %   Release the temnormMinrary array for calculation of hidden neuron output matrix H
