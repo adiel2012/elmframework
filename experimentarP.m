@@ -2,6 +2,8 @@ clear;
 addpath libelmdefitness/;
 addpath opelm/;
 
+addpath(genpath(strcat(pwd,'\libs')));
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 EE.nhidden = 100;
 EE.hNodesSet = 10:10:100;
@@ -30,6 +32,7 @@ EE.ldaelm = 0;
 EE.pcaldaelm = 0;
 
 EE.ielm = 0;
+EE.em_elm = 0;
 EE.pelm = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

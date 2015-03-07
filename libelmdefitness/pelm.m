@@ -333,11 +333,37 @@ csp = floor(percent*numpatterns);
 indices= randperm(numpatterns);
 
 
+
+TTone = zeros(csp,1);
+for i = 1 : csp
+   
+    mm = find(T(:,i)==1);
+    mm = mm(1);    
+    TTone(i) = mm;
+end
+
+
+
+
 HT = H(:,indices(1:csp)) ;
 HC = H(:,indices(csp+1:numpatterns));
+NumpatternsComprobation = numpatterns - csp;
+
 
 TT = T(:,indices(1:csp));
 TC = T(:,indices(csp+1:numpatterns));
+
+
+%load iris.dat
+%cv = cvpartition(iris(:, 1), 'holdout', 0.25);
+%text_mat = iris(cv.test, :);
+
+%cv.test
+
+
+
+
+
 
 numbin = 15;
 
@@ -368,15 +394,22 @@ end
 
 featuresEval = featuresEval/sum(featuresEval); 
 
-temporalH = [HT featuresEval];
+%inds= [1:numhiddenneurons];
+
+
+temporalH = [HT featuresEval               [1:numhiddenneurons]'  HC];
 temporalH = sortrows(temporalH,csp+1)';   % ordenar por la evaluacion de las caracteristicas
 
 evals= temporalH(csp+1,:)';
-ordtrash=sort(featuresEval);
-HO = temporalH(1:csp,:);
-size(HO)
+nuevosindices= temporalH(csp+2,:)';
 
-[evals ordtrash]
+ordtrash=sort(featuresEval);
+HTO = temporalH(1:csp,:);
+HCO = temporalH(csp+3:end,:);
+%size(HTO);
+
+
+%[evals ordtrash];
 
  
 
@@ -387,6 +420,15 @@ rm=1;
 rM=9;
 evals=evals/sum(evals);
 
+%nuevosindices
+max(nuevosindices);
+min(nuevosindices);
+InputWeight=InputWeight(nuevosindices',:);   % ordeno los pesos
+H=H(nuevosindices',:);
+BiasofHiddenNeurons = BiasofHiddenNeurons(nuevosindices',:);
+
+MinAIC = 1000000;
+MinAICNeuronQuantityI=-1;
 
 for i = numhiddenneurons-1: -1 : 2 % proposed in paper
   suma = suma + evals(i);
@@ -394,22 +436,62 @@ for i = numhiddenneurons-1: -1 : 2 % proposed in paper
   if( floor(suma/step) ~= cont  )
       cont=floor(suma/step);
       if (cont>=rm) && (cont<=rM)
-        aHT = HO(:,i:numhiddenneurons);
-        %evals(i:numhiddenneurons)
-        %cont
-        %size(aHT)
-        B =pinv(aHT) * TT';
-        %calcular 
-        aY= (aHT*B)';
-        [winnerTrain LabelTrainPredicted] = max(aY);
+        aHT = HTO(:,i:numhiddenneurons);
+        aHCO=HCO(:,i:numhiddenneurons);
         
-        aYTest= (aHT*B)';
+       
         
+        %calcular   en Entrenamiento 
+         B =pinv(aHT) * TT';
+        %aY= (aHT*B)';
+        %[winnerTrain LabelTrainPredicted] = max(aY);        
+        %[ff predict] = max(TT); 
+        %[predict' LabelTrainPredicted' aY'];
+        
+        
+        %calcular en test
+      
+        
+    
+      
+        aYTest= (aHCO*B)';
+        [winnerTrain LabelTrainPredictedTemp] = max(aYTest);        
+        [ff targets] = max(TC); 
+        %[predict' LabelTrainPredictedTemp' aYTest'];
+        
+        
+        
+        %T_org=targets';
+        %LabelTrainPredictedTemp = LabelTrainPredictedTemp';    
+        CM = confmat(targets'-1,LabelTrainPredictedTemp'-1);
+    
+        if size(CM,1)==4
+            unique(targets)
+            fffff=3;
+        end
+        
+        aCCR = CCR(CM); %*100
+        
+        S_i = numhiddenneurons-i+1;
+        asigma_square=(1-aCCR)*(1-aCCR)* NumpatternsComprobation*NumpatternsComprobation; 
+        AIC = 2*NumpatternsComprobation*log(asigma_square/NumpatternsComprobation)+S_i;
+        
+        if(AIC<MinAIC)
+            MinAIC=AIC;
+            MinAICNeuronQuantityI=i;
+            
+        end
         
       end
   end
 end
 
+%MinAICNeuronQuantityI=5;
+
+H=H(MinAICNeuronQuantityI:numhiddenneurons,:);
+InputWeight=InputWeight(MinAICNeuronQuantityI:numhiddenneurons,:);            
+BiasofHiddenNeurons=BiasofHiddenNeurons(MinAICNeuronQuantityI:numhiddenneurons,:);            
+NumberofHiddenNeuronsFinal= numhiddenneurons - MinAICNeuronQuantityI+1   
 
 
 clear tempH;                                        %   Release the temnormMinrary array for calculation of hidden neuron output matrix H
@@ -522,6 +604,8 @@ if Elm_Type == CLASSIFIER
     LabelTrainPredicted = LabelTrainPredicted -1;
     LabelTestPredicted = LabelTestPredicted';
     LabelTestPredicted = LabelTestPredicted -1;
+    
+   
     
     ConfusionMatrixTrain = confmat(T_org,LabelTrainPredicted);
     ConfusionMatrixTest = confmat(TV_org,LabelTestPredicted);

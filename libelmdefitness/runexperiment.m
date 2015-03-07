@@ -165,7 +165,7 @@ if (EE.pelm)
 end
 
 %% EM-ELM
-if (EE.pelm)
+if (EE.em_elm)
     
     disp(['EM-ELM']);
     EE.elmAlgorithm = 'em_elm';

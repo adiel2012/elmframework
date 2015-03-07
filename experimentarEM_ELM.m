@@ -30,16 +30,16 @@ EE.ldaelm = 0;
 EE.pcaldaelm = 0;
 
 EE.ielm = 0;
-EE.pelm = 1;
+EE.pelm = 0;
 EE.em_elm = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-EE.dbName = 'anneal';experimentarutil;
-EE.dbName = 'balance';experimentarutil;
+%EE.dbName = 'anneal';experimentarutil;
+%EE.dbName = 'balance';experimentarutil;
 %EE.dbName = 'breast';experimentarutil;
 %EE.dbName = 'breastw';experimentarutil;
 %EE.dbName = 'btx';experimentarutil;
-%EE.dbName = 'card';experimentarutil;
+EE.dbName = 'card';experimentarutil;
 %EE.dbName = 'diabetes';experimentarutil;
 %EE.dbName = 'ecoli';experimentarutil;
 %EE.dbName = 'gcm_BA_190x311';experimentarutil;

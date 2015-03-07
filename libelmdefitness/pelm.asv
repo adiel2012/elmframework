@@ -1,7 +1,8 @@
 %function [TrainingTime, TrainingAccuracy, TestingAccuracy] = ...
 function [TrainingTime, ConfusionMatrixTrain, ConfusionMatrixTest, CCRTrain, MSTrain, CCRTest, MSTest...
     	NumberofInputNeurons,NumberofHiddenNeurons,NumberofHiddenNeuronsFinal,NumberofOutputNeurons,InputWeight,OutputWeight,pstar_train] = ...
-    em_elm(train_data, test_data, Elm_Type, NumberofHiddenNeurons, ActivationFunction,  wMin, wMax)
+    pelm(train_data, test_data, Elm_Type, NumberofHiddenNeurons, ActivationFunction,  wMin, wMax)
+
 %function [TrainingTime, TestingTime, TrainingAccuracy, TestingAccuracy] = elm(TrainingData_File, TestingData_File, Elm_Type, NumberofHiddenNeurons, ActivationFunction, normMin,normMax, wMin, wMax)
 
 % Usage: elm(TrainingData_File, TestingData_File, Elm_Type, NumberofHiddenNeurons, ActivationFunction)
@@ -319,48 +320,171 @@ switch lower(ActivationFunction)
 end
 %COMENTADO clear P;
 
-clear tempH;                                        %   Release the temnormMinrary array for calculation of hidden neuron output matrix H
+
+
+
+% voy a podar
+
+% fracciono el dataset  75 y 25%
+percent = 0.75;
+numpatterns = size(H,2);
+numhiddenneurons = size(H,1);
+csp = floor(percent*numpatterns);
+indices= randperm(numpatterns);
 
 
 
 
-numpatterns= size(P,2);
-numoutputneurons=size(T,1); 
-errorthresold = 0.01;
-error = errorthresold+1; % para que entre la primera ves      
-i=3;
-while i <= NumberofHiddenNeurons && error > errorthresold 
-    HTemporal = H(1:i-1,:)';
-    
-    if(i==3)
-       HI=inv(HTemporal'*HTemporal)* HTemporal';
-    else         
-       d =  H(i-1,:)';
-       D=((d'*((eye(numpatterns)-HTemporalAnterior'*HI)))') /(d'*((eye(numpatterns)-HTemporalAnterior'*HI))*d);
-       U= HI*(eye(numpatterns)-d*D') ;
-       HI = [U' D]' ;      
-       
-       
-       %HI2 =  inverse1( HTemporalAnterior', HI', d);
-       %sum(sum(abs(HI-INV2)))       
-       
-    end
-    Btemp= HI*T';
-    error = sum(sum(abs( HTemporal*Btemp -T' ))) / (numpatterns*numoutputneurons);
-    NumberofHiddenNeuronsFinal=i;
-    i = i+1;
-    HTemporalAnterior =HTemporal';
+HT = H(:,indices(1:csp)) ;
+HC = H(:,indices(csp+1:numpatterns));
+NumpatternsComprobation = numpatterns - csp;
+
+
+TT = T(:,indices(1:csp));
+TC = T(:,indices(csp+1:numpatterns));
+
+
+%load iris.dat
+%cv = cvpartition(iris(:, 1), 'holdout', 0.25);
+%text_mat = iris(cv.test, :);
+
+%cv.test
+
+
+
+
+
+
+numbin = 15;
+
+numattrs = size(InputWeight,2);  
+featuresEval = zeros(numhiddenneurons,1);
+
+TTone = zeros(csp,1);
+for i = 1 : csp
+   
+    mm = find(T(:,i)==1);
+    mm = mm(1);    
+    TTone(i) = mm;
 end
 
-H=H(1:min(i,NumberofHiddenNeurons),:);
-InputWeight=InputWeight(1:NumberofHiddenNeuronsFinal,:);
+%size(TT)
+%size(T)
 
 
-%0.1235    0.3919
-%0.3111    0.5226
-%0.4838    0.7770 
-%0.1299    0.4014
-%0.4204    0.9349
+%[TT  T']
+
+for i = 1 : numhiddenneurons
+    featuresEval(i) = chi2featureMine(discretize(HT(i,:),numbin)', TTone', numbin) ;
+end
+
+%maxim = max(featuresEval);
+%minim = min(featuresEval);
+%featuresEval = (featuresEval-minim)/(maxim-minim)
+
+featuresEval = featuresEval/sum(featuresEval); 
+
+%inds= [1:numhiddenneurons];
+
+
+temporalH = [HT featuresEval               [1:numhiddenneurons]'  HC];
+temporalH = sortrows(temporalH,csp+1)';   % ordenar por la evaluacion de las caracteristicas
+
+evals= temporalH(csp+1,:)';
+nuevosindices= temporalH(csp+2,:)';
+
+ordtrash=sort(featuresEval);
+HTO = temporalH(1:csp,:);
+HCO = temporalH(csp+3:end,:);
+%size(HTO);
+
+
+%[evals ordtrash];
+
+ 
+
+step = 0.1;  % proposed in paper
+suma = 0;
+cont=0;
+rm=1;
+rM=9;
+evals=evals/sum(evals);
+
+%nuevosindices
+max(nuevosindices);
+min(nuevosindices);
+InputWeight=InputWeight(nuevosindices',:);   % ordeno los pesos
+H=H(nuevosindices',:);
+BiasofHiddenNeurons = BiasofHiddenNeurons(nuevosindices',:);
+
+MinAIC = 1000000;
+MinAICNeuronQuantityI=-1;
+
+for i = numhiddenneurons-1: -1 : 2 % proposed in paper
+  suma = suma + evals(i);
+ % suma/step
+  if( floor(suma/step) ~= cont  )
+      cont=floor(suma/step);
+      if (cont>=rm) && (cont<=rM)
+        aHT = HTO(:,i:numhiddenneurons);
+        aHCO=HCO(:,i:numhiddenneurons);
+        
+       
+        
+        %calcular   en Entrenamiento 
+         B =pinv(aHT) * TT';
+        %aY= (aHT*B)';
+        %[winnerTrain LabelTrainPredicted] = max(aY);        
+        %[ff predict] = max(TT); 
+        %[predict' LabelTrainPredicted' aY'];
+        
+        
+        %calcular en test
+      
+        
+    
+      
+        aYTest= (aHCO*B)';
+        [winnerTrain LabelTrainPredictedTemp] = max(aYTest);        
+        [ff targets] = max(TC); 
+        %[predict' LabelTrainPredictedTemp' aYTest'];
+        
+        
+        
+        %T_org=targets';
+        %LabelTrainPredictedTemp = LabelTrainPredictedTemp';    
+        CM = confmat(targets'-1,LabelTrainPredictedTemp'-1);
+    
+        if size(CM,1)==4
+            unique(targets)
+            fffff=3;
+        end
+        
+        aCCR = CCR(CM); %*100
+        
+        S_i = numhiddenneurons-i+1;
+        asigma_square=(1-aCCR)*(1-aCCR)* NumpatternsComprobation*NumpatternsComprobation; 
+        AIC = 2*NumpatternsComprobation*log(asigma_square/NumpatternsComprobation)+S_i;
+        
+        if(AIC<MinAIC)
+            MinAIC=AIC;
+            MinAICNeuronQuantityI=i;
+            
+        end
+        
+      end
+  end
+end
+
+%MinAICNeuronQuantityI=5;
+
+H=H(MinAICNeuronQuantityI:numhiddenneurons,:);
+InputWeight=InputWeight(MinAICNeuronQuantityI:numhiddenneurons,:);            
+BiasofHiddenNeurons=BiasofHiddenNeurons(MinAICNeuronQuantityI:numhiddenneurons,:);            
+NumberofHiddenNeuronsFinal= numhiddenneurons - MinAICNeuronQuantityI+1   
+
+
+clear tempH;                                        %   Release the temnormMinrary array for calculation of hidden neuron output matrix H
 
 
 %%%%%%%%%%% Calculate output weights OutputWeight (beta_i)
@@ -470,6 +594,8 @@ if Elm_Type == CLASSIFIER
     LabelTrainPredicted = LabelTrainPredicted -1;
     LabelTestPredicted = LabelTestPredicted';
     LabelTestPredicted = LabelTestPredicted -1;
+    
+   
     
     ConfusionMatrixTrain = confmat(T_org,LabelTrainPredicted);
     ConfusionMatrixTest = confmat(TV_org,LabelTestPredicted);
