@@ -43,8 +43,8 @@ for i = 3 : numsubfolders
                     %disp(val)
                     %disp(',');
                     %strcat(val{1},';')
-                    fprintf(fidw,  strrep(strcat(val{1},';'), '.', ','));
-                   % fprintf(fidw,'%s;',val{1});
+                   % fprintf(fidw,strcat(val{1},';'));
+                    fprintf(fidw,';',val{1});
                     
                     %fwrite(fidw,val{1});
                 end

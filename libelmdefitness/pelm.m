@@ -345,9 +345,12 @@ for i = 1 : numpatterns
     mm = mm(1);    
     Tone(i) = mm;
 end
-cv = cvpartition(Tone, 'holdout', percent);
-indicesC=(find(cv.test==0));
-indicesT=(find(cv.test==1));
+
+numclasses = size(unique(Tone),1);
+
+cv = cvpartition(Tone, 'holdout', 1-percent);
+indicesC=(find(cv.test==1));
+indicesT=(find(cv.test==0));
 indices=[indicesT' indicesC']';
 csp=size(indicesT,1);
 NumpatternsComprobation = numpatterns - csp;
@@ -396,7 +399,7 @@ end
 %[TT  T']
 
 for i = 1 : numhiddenneurons
-    featuresEval(i) = chi2featureMine(discretize(HT(i,:),numbin)', TTone', numbin) ;
+    featuresEval(i) = chi2featureMine(discretize(HT(i,:),numbin)', TTone', numbin,numclasses) ;
 end
 
 %maxim = max(featuresEval);
@@ -476,10 +479,10 @@ for i = numhiddenneurons-1: -1 : 2 % proposed in paper
         %LabelTrainPredictedTemp = LabelTrainPredictedTemp';    
         CM = confmat(targets'-1,LabelTrainPredictedTemp'-1);
     
-        if size(CM,1)==4
-            unique(targets)
-            fffff=3;
-        end
+       % if size(CM,1)==4
+       %     unique(targets)
+       %     fffff=3;
+       % end
         
         aCCR = CCR(CM); %*100        
         S_i = numhiddenneurons-i+1;

@@ -1,9 +1,9 @@
-function [chi_square] = chi2featureMine(feature, label, numbin)
+function [chi_square] = chi2featureMine(feature, label, numbin , numclases)
 % chi squared feature measure for multinomial class
 % find class name
-class = unique(label);
+
 N = size(feature, 2);
-numclases = size(class,2);
+
 
 %data=[feature' label'];
 sorted = sortrows([feature' label'],1);
@@ -11,6 +11,9 @@ sorted = sortrows([feature' label'],1);
 minimun = min(feature);
 maximun = max(feature);
 
+%max(feature')
+%max(label')
+%max(sorted(:,1))
 
 for i = 1 : N
    sorted(i,1) = floor((sorted(i,1)-minimun)/(maximun-minimun) * numbin) ;
@@ -22,6 +25,7 @@ R=zeros(numclases,1);
 Z=zeros(numbin,1);
 
 for i = 1 : N
+    
     A(sorted(i,1)+1,sorted(i,2)) = A(sorted(i,1)+1,sorted(i,2)) + 1;
     Z(sorted(i,1)+1) = Z(sorted(i,1)+1)   +  1;
     R(sorted(i,2)) = R(sorted(i,2)) +  1;
