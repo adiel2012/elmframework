@@ -326,7 +326,7 @@ clear tempH;                                        %   Release the temnormMinra
 
 numpatterns= size(P,2);
 numoutputneurons=size(T,1); 
-errorthresold = 0.01;
+errorthresold = 0.1;
 error = errorthresold+1; % para que entre la primera ves      
 i=3;
 while i <= NumberofHiddenNeurons && error > errorthresold 
@@ -338,9 +338,7 @@ while i <= NumberofHiddenNeurons && error > errorthresold
        d =  H(i-1,:)';
        D=((d'*((eye(numpatterns)-HTemporalAnterior'*HI)))') /(d'*((eye(numpatterns)-HTemporalAnterior'*HI))*d);
        U= HI*(eye(numpatterns)-d*D') ;
-       HI = [U' D]' ;      
-       
-       
+       HI = [U' D]' ;
        %HI2 =  inverse1( HTemporalAnterior', HI', d);
        %sum(sum(abs(HI-INV2)))       
        
@@ -352,7 +350,8 @@ while i <= NumberofHiddenNeurons && error > errorthresold
     HTemporalAnterior =HTemporal';
 end
 
-H=H(1:min(i,NumberofHiddenNeurons),:);
+H=H(1:min(i,NumberofHiddenNeuronsFinal),:);
+BiasofHiddenNeurons=BiasofHiddenNeurons(1:min(i,NumberofHiddenNeuronsFinal));
 InputWeight=InputWeight(1:NumberofHiddenNeuronsFinal,:);
 
 
@@ -361,6 +360,10 @@ InputWeight=InputWeight(1:NumberofHiddenNeuronsFinal,:);
 %0.4838    0.7770 
 %0.1299    0.4014
 %0.4204    0.9349
+
+%NumberofHiddenNeurons =NumberofHiddenNeuronsFinal;
+
+%size(BiasofHiddenNeurons)
 
 
 %%%%%%%%%%% Calculate output weights OutputWeight (beta_i)
@@ -389,6 +392,11 @@ if strcmpi(ActivationFunction, 'sig')
     ind=ones(1,NumberofTestingData);
 
     BiasMatrix=BiasofHiddenNeurons(:,ind);              %   Extend the bias matrix BiasofHiddenNeurons to match the demention of H
+    
+    if( size(tempH_test,1)~= size(BiasMatrix,1) || size(tempH_test,2)~= size(BiasMatrix,2) )
+        dfgdfg=7;
+    end
+    
     tempH_test=tempH_test + BiasMatrix;
 end
 

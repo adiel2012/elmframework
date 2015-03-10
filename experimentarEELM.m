@@ -58,3 +58,4 @@ EE.dbName = 'seguros';experimentarutil;
 EE.dbName = 'vote';experimentarutil;
 EE.dbName = 'vowel';experimentarutil;
 EE.dbName = 'zoo';experimentarutil;
+resumen;
