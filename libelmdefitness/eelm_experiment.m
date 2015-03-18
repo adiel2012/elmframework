@@ -309,7 +309,7 @@ if logLevel > 0
         
         dlmwrite(experimentResultOutput,['EE.nnbase: ' num2str(EE.nnbase)],'-append','delimiter','');
         dlmwrite(experimentResultOutput,['Population: ' num2str(EE.npop)],'-append','delimiter','');
-        dlmwrite(experimentResultOutput,['Hidden nodes: ' num2str(EE.nhidden)],'-append','delimiter','');
+         dlmwrite(experimentResultOutput,['Hidden nodes: ' num2str(EEStats.nhiddenFinal)],'-append','delimiter','');      %   dlmwrite(experimentResultOutput,['Hidden nodes: ' num2str(EE.nhidden)],'-append','delimiter','');
         dlmwrite(experimentResultOutput,['Iterations: ' num2str(EE.itermax)],'-append','delimiter','');
         dlmwrite(experimentResultOutput,['EE.refresh: ' num2str(EE.refresh)],'-append','delimiter','');
         dlmwrite(experimentResultOutput,['EE.CR: ' num2str(EE.CR)],'-append','delimiter','');

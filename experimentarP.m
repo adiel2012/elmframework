@@ -60,7 +60,10 @@ EE.dbName = 'newthyroid';experimentarutil;
 EE.dbName = 'pima';experimentarutil;
 EE.dbName = 'postop';experimentarutil;
 EE.dbName = 'saureus4';experimentarutil;
-EE.dbName = 'seguros';experimentarutil;
 EE.dbName = 'vote';experimentarutil;
 EE.dbName = 'vowel';experimentarutil;
 EE.dbName = 'zoo';experimentarutil;
+EE.dbName = 'yeast';experimentarutil;
+
+%EE.dbName = 'seguros';experimentarutil;
+resumen

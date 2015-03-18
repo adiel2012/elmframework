@@ -326,7 +326,7 @@ clear tempH;                                        %   Release the temnormMinra
 
 numpatterns= size(P,2);
 numoutputneurons=size(T,1); 
-errorthresold = 0.1;
+errorthresold = 0.01;
 error = errorthresold+1; % para que entre la primera ves      
 i=3;
 while i <= NumberofHiddenNeurons && error > errorthresold 
