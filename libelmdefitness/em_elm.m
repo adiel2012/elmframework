@@ -1,6 +1,6 @@
 %function [TrainingTime, TrainingAccuracy, TestingAccuracy] = ...
 function [TrainingTime, ConfusionMatrixTrain, ConfusionMatrixTest, CCRTrain, MSTrain, CCRTest, MSTest...
-    	NumberofInputNeurons,NumberofHiddenNeurons,NumberofHiddenNeuronsFinal,NumberofOutputNeurons,InputWeight,OutputWeight,pstar_train] = ...
+    NumberofInputNeurons,NumberofHiddenNeurons,NumberofHiddenNeuronsFinal,NumberofOutputNeurons,InputWeight,OutputWeight,pstar_train] = ...
     em_elm(train_data, test_data, Elm_Type, NumberofHiddenNeurons, ActivationFunction,  wMin, wMax)
 %function [TrainingTime, TestingTime, TrainingAccuracy, TestingAccuracy] = elm(TrainingData_File, TestingData_File, Elm_Type, NumberofHiddenNeurons, ActivationFunction, normMin,normMax, wMin, wMax)
 
@@ -19,12 +19,12 @@ function [TrainingTime, ConfusionMatrixTrain, ConfusionMatrixTest, CCRTrain, MST
 %                           'tribas' for Triangular basis function
 %                           'radbas' for Radial basis function (for additive type of SLFNs instead of RBF type of SLFNs)
 %
-% Output: 
+% Output:
 % TrainingTime          - Time (seconds) spent on training ELM
 % TestingTime           - Time (seconds) spent on predicting ALL testing data
-% TrainingAccuracy      - Training accuracy: 
+% TrainingAccuracy      - Training accuracy:
 %                           RMSE for regression or correct classification rate for classification
-% TestingAccuracy       - Testing accuracy: 
+% TestingAccuracy       - Testing accuracy:
 %                           RMSE for regression or correct classification rate for classification
 %
 % MULTI-CLASSE CLASSIFICATION: NUMBER OF OUTPUT NEURONS WILL BE AUTOMATICALLY SET EQUAL TO NUMBER OF CLASSES
@@ -34,11 +34,11 @@ function [TrainingTime, ConfusionMatrixTrain, ConfusionMatrixTest, CCRTrain, MST
 % Sample1 regression: [TrainingTime, TestingTime, TrainingAccuracy, TestingAccuracy] = elm('sinc_train', 'sinc_test', 0, 20, 'sig')
 % Sample2 classification: elm('diabetes_train', 'diabetes_test', 1, 20, 'sig')
 %
-    %%%%    Authors:    MR QIN-YU ZHU AND DR GUANG-BIN HUANG
-    %%%%    NANYANG TECHNOLOGICAL UNIVERSITY, SINGAPORE
-    %%%%    EMAIL:      EGBHUANG@NTU.EDU.SG; GBHUANG@IEEE.ORG
-    %%%%    WEBSITE:    http://www.ntu.edu.sg/eee/icis/cv/egbhuang.htm
-    %%%%    DATE:       APRIL 2004
+%%%%    Authors:    MR QIN-YU ZHU AND DR GUANG-BIN HUANG
+%%%%    NANYANG TECHNOLOGICAL UNIVERSITY, SINGAPORE
+%%%%    EMAIL:      EGBHUANG@NTU.EDU.SG; GBHUANG@IEEE.ORG
+%%%%    WEBSITE:    http://www.ntu.edu.sg/eee/icis/cv/egbhuang.htm
+%%%%    DATE:       APRIL 2004
 
 %%%%%%%%%%% Macro definition
 REGRESSION=0;
@@ -75,7 +75,7 @@ end
 %%%%%%%%%%% NaN can be obtained later.
 % minvals = min(P');
 % maxvals = max(P');
-% 
+%
 % r = 0;
 % for k=1:size(P,1)
 %     if minvals(k) == maxvals(k)
@@ -83,7 +83,7 @@ end
 %         index(r) = k;
 %     end
 % end
-% 
+%
 % if r > 0
 % 	r = 0;
 % 	for k=1:size(index,2)
@@ -98,8 +98,8 @@ end
 % if strcmp(ActivationFunction, 'up')
 %    P = log(P);
 %    TV.P = log(TV.P);
-% end        
-        
+% end
+
 NumberofTrainingData=size(P,2);
 NumberofTestingData=size(TV.P,2);
 NumberofInputNeurons=size(P,1);
@@ -126,7 +126,7 @@ if Elm_Type~=REGRESSION
         for j = 1:number_class
             if label(1,j) == T(1,i)
                 nOfPatterns(j,1) = nOfPatterns(j,1) + 1;
-                break; 
+                break;
             end
         end
         temp_T(j,i)=1;
@@ -135,20 +135,20 @@ if Elm_Type~=REGRESSION
     T=temp_T*2-1;
     
     pstar_train = min(nOfPatterns) / NumberofTrainingData;
-
+    
     %%%%%%%%%% Processing the targets of testing
     temp_TV_T=zeros(NumberofOutputNeurons, NumberofTestingData);
     for i = 1:NumberofTestingData
         for j = 1:number_class
             if label(1,j) == TV.T(1,i)
-                break; 
+                break;
             end
         end
         temp_TV_T(j,i)=1;
     end
     TV_org = TV.T';
     TV.T=temp_TV_T*2-1;
-
+    
 end                                                 %   end if of Elm_Type
 
 %%%%%%%%%%% Calculate weights & biases
@@ -167,11 +167,11 @@ end
 switch lower(ActivationFunction)
     case {'sig','sigmoid'}
         InputWeight=rand(NumberofHiddenNeurons,NumberofInputNeurons)*2-1;
-
+        
         BiasofHiddenNeurons=rand(NumberofHiddenNeurons,1);
         tempH=InputWeight*P;
         %Movido abajo
-        %clear P;                                            %   Release input of training data 
+        %clear P;                                            %   Release input of training data
         ind=ones(1,NumberofTrainingData);
         BiasMatrix=BiasofHiddenNeurons(:,ind);              %   Extend the bias matrix BiasofHiddenNeurons to match the demention of H
         tempH=tempH+BiasMatrix;
@@ -190,7 +190,7 @@ switch lower(ActivationFunction)
         W1=P(MP(1:NumberofHiddenNeurons),:);
         W10=rand(1,NumberofHiddenNeurons)*(a90-a10)+a10;
         InputWeight = [W1 W10'];
-   case {'rbf2'}
+    case {'rbf2'}
         P = P';
         
         % REDISTRIBUIR CLASES
@@ -205,16 +205,16 @@ switch lower(ActivationFunction)
         end
         a10=prctile(TY,20);
         a90=prctile(TY,60);
-
-%         Class0Weight = 0.5;
-%         
-%         Class0Number = round(NumberofHiddenNeurons * Class0Weight);
-%         Class1Number = round(NumberofHiddenNeurons * (1-Class0Weight));
+        
+        %         Class0Weight = 0.5;
+        %
+        %         Class0Number = round(NumberofHiddenNeurons * Class0Weight);
+        %         Class1Number = round(NumberofHiddenNeurons * (1-Class0Weight));
         
         Class0Number = round(NumberofHiddenNeurons / 3);
         Class1Number = round(NumberofHiddenNeurons / 3);
         Class2Number = round(NumberofHiddenNeurons / 3);
-
+        
         MP=randperm(size(CLASS0,1));
         W1a=CLASS0(MP(:,1:Class0Number),:);
         
@@ -248,16 +248,16 @@ switch lower(ActivationFunction)
 end
 
 
-        
+
 
 %%%%%%%%%%% Calculate hidden neuron output matrix H
 switch lower(ActivationFunction)
     case {'sig','sigmoid'}
-        %%%%%%%% Sigmoid 
+        %%%%%%%% Sigmoid
         H = 1 ./ (1 + exp(-tempH));
     case {'sin','sine'}
         %%%%%%%% Sine
-        H = sin(tempH);    
+        H = sin(tempH);
     case {'hardlim'}
         %%%%%%%% Hard Limit
         H = double(hardlim(tempH));
@@ -290,7 +290,7 @@ switch lower(ActivationFunction)
             H(:,j)=gaussian_func(P,W1(j,:),W10(1,j));
             %KM.valueinit(:,j)=gaussian_func(x,W1(j,:),W10(1,j));
         end
-        H = H';        
+        H = H';
     case {'grbf'}
         % Compute Pairwise Euclidean distance
         EuclideanDistanceArray = pdist(InputWeight);
@@ -308,7 +308,7 @@ switch lower(ActivationFunction)
         %radii = dF ./(-log(0.95)).^(1 ./taus);
         radii = dF ./(-log(0.99)).^(1 ./taus);
         % Obtain denominator
-        denominator = radii .^taus;    
+        denominator = radii .^taus;
         denominator_extended = repmat(denominator,NumberofTrainingData,1)';
         % Obtain Numerator
         EuclideanDistance = pdist2(InputWeight,P','euclidean');
@@ -321,43 +321,167 @@ end
 
 clear tempH;                                        %   Release the temnormMinrary array for calculation of hidden neuron output matrix H
 
+numpatterns = size(H,2);
+numhiddenneurons = size(H,1);
 
-
-
-numpatterns= size(P,2);
-numoutputneurons=size(T,1); 
-errorthresold = 0.01;
-error = errorthresold+1; % para que entre la primera ves      
-i=3;
-while i <= NumberofHiddenNeurons && error > errorthresold 
-    HTemporal = H(1:i-1,:)';
+y = zeros(numpatterns,1);
+for i = 1 : numpatterns
     
-    if(i==3)
-       HI=inv(HTemporal'*HTemporal)* HTemporal';
-    else         
-       d =  H(i-1,:)';
-       D=((d'*((eye(numpatterns)-HTemporalAnterior'*HI)))') /(d'*((eye(numpatterns)-HTemporalAnterior'*HI))*d);
-       U= HI*(eye(numpatterns)-d*D') ;
-       HI = [U' D]' ;
-       %HI2 =  inverse1( HTemporalAnterior', HI', d);
-       %sum(sum(abs(HI-INV2)))       
-       
+    mm = find(T(:,i)==1);
+    mm = mm(1);
+    y(i) = mm;
+end
+
+arrayerrorthresold =  [0.5 0.4 0.3 0.2 0.15 0.12 0.1 0.08 0.06];
+cantthresolds = size(arrayerrorthresold,2);
+
+%y = species;
+numfolds = 5;
+c = cvpartition(y,'k',numfolds);
+bestthresold = -1;
+maxsumaCCR=-1;
+
+for index = 1 : cantthresolds
+    
+    errorthresold = arrayerrorthresold(index);
+    %BiasofHiddenNeuronsSub=BiasofHiddenNeurons(:,indicesT);
+    sumaCCR=0;
+    for indexfold = 1 : numfolds
+        
+        indicesC=(find(c.test(indexfold)==1));
+        indicesT=(find(c.test(indexfold)==0));        
+        
+        HSub=H(:,indicesT);
+        HSubC=H(:,indicesC);
+        TSub=T(:,indicesT);
+        CSub=T(:,indicesC);
+        
+        numpatterns= size(HSub,2);
+        numoutputneurons=size(TSub,1);
+        error = errorthresold+1; % para que entre la primera ves
+        i=3;
+        %BtempAnterior=0;
+        Btemp=-1;
+        ini=3;
+        while i <= NumberofHiddenNeurons && error > errorthresold
+            HTemporal = HSub(1:i-1,:)';
+            HTemporalC = HSubC(1:i-1,:);
+            if(i==ini)
+                HI=inv(HTemporal'*HTemporal)* HTemporal';
+            else
+                d =  HSub(i-1,:)';
+                D=((d'*((eye(numpatterns)-HTemporalAnterior'*HI)))') /(d'*((eye(numpatterns)-HTemporalAnterior'*HI))*d);
+                U= HI*(eye(numpatterns)-d*D') ;
+                HI = [U' D]' ;
+                %HI2 =  inverse1( HTemporalAnterior', HI', d);
+                %numpatterns
+                %numoutputneurons
+                %error=sum(sum(abs(HI-pinv( [HTemporalAnterior' d]  ))))/(size(HI,1)*size(HI,2))
+            end
+            
+           
+            Btemp= HI*TSub';
+            error = sum(sum(abs( HTemporal*Btemp -TSub' ))) / (numpatterns*numoutputneurons);
+            
+            NumberofHiddenNeuronsFinal=i;
+            i = i+1;
+            HTemporalAnterior =HTemporal';
+        end
+        
+        % calcular CCR  sobre el conjunto de comprobación
+        aB =  Btemp;
+        
+        % if(i <= NumberofHiddenNeurons && i~=ini+1)
+        %     aB= BtempAnterior;
+        % else
+        %     aB=  Btemp;
+        % end
+        
+        aYTest= (HTemporalC'*aB)';
+        [winnerTrain LabelTrainPredictedTemp] = max(aYTest);
+        [ff targets] = max(CSub);
+        CM = confmat(targets'-1,LabelTrainPredictedTemp'-1);
+        aCCR = CCR(CM);
+        sumaCCR=sumaCCR+aCCR;
+        
     end
+    
+    CCRtotal= sumaCCR/numfolds;
+    if(CCRtotal>maxsumaCCR)
+        maxsumaCCR=CCRtotal;
+        bestthresold=errorthresold;
+    end
+end
+
+%termine de estimar el thresold
+errorthresold=bestthresold
+
+
+
+
+
+
+numpatterns= size(H,2);
+numoutputneurons=size(T,1);
+error = errorthresold+1;
+while i <= NumberofHiddenNeurons && error > errorthresold
+    HTemporal = H(1:i-1,:)';
+    if(i==ini)
+        HI=inv(HTemporal'*HTemporal)* HTemporal';
+    else
+        d =  H(i-1,:)';
+        D=((d'*((eye(numpatterns)-HTemporalAnterior'*HI)))') /(d'*((eye(numpatterns)-HTemporalAnterior'*HI))*d);
+        U= HI*(eye(numpatterns)-d*D') ;
+        HI = [U' D]' ;
+    end
+    
+    
     Btemp= HI*T';
     error = sum(sum(abs( HTemporal*Btemp -T' ))) / (numpatterns*numoutputneurons);
+    
     NumberofHiddenNeuronsFinal=i;
     i = i+1;
     HTemporalAnterior =HTemporal';
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 H=H(1:min(i,NumberofHiddenNeuronsFinal),:);
 BiasofHiddenNeurons=BiasofHiddenNeurons(1:min(i,NumberofHiddenNeuronsFinal));
 InputWeight=InputWeight(1:NumberofHiddenNeuronsFinal,:);
 
 
+
+
+
+
+
+
 %0.1235    0.3919
 %0.3111    0.5226
-%0.4838    0.7770 
+%0.4838    0.7770
 %0.1299    0.4014
 %0.4204    0.9349
 
@@ -387,10 +511,10 @@ start_time_test=cputime;
 
 if strcmpi(ActivationFunction, 'sig')
     tempH_test=InputWeight*TV.P;
-    %Movido abajo 
-    %clear TV.P;             %   Release input of testing data             
+    %Movido abajo
+    %clear TV.P;             %   Release input of testing data
     ind=ones(1,NumberofTestingData);
-
+    
     BiasMatrix=BiasofHiddenNeurons(:,ind);              %   Extend the bias matrix BiasofHiddenNeurons to match the demention of H
     
     if( size(tempH_test,1)~= size(BiasMatrix,1) || size(tempH_test,2)~= size(BiasMatrix,2) )
@@ -402,26 +526,26 @@ end
 
 switch lower(ActivationFunction)
     case {'sig','sigmoid'}
-        %%%%%%%% Sigmoid 
+        %%%%%%%% Sigmoid
         H_test = 1 ./ (1 + exp(-tempH_test));
     case {'sin','sine'}
         %%%%%%%% Sine
-        H_test = sin(tempH_test);        
+        H_test = sin(tempH_test);
     case {'hardlim'}
         %%%%%%%% Hard Limit
-        H_test = hardlim(tempH_test);        
+        H_test = hardlim(tempH_test);
     case {'tribas'}
         %%%%%%%% Triangular basis function
-        H_test = tribas(tempH_test);        
+        H_test = tribas(tempH_test);
     case {'radbas'}
         %%%%%%%% Radial basis function
-        H_test = radbas(tempH_test);        
+        H_test = radbas(tempH_test);
         %%%%%%%% More activation functions can be added here
     case {'up'}
-
+        
         %TV.P = log(TV.P);
         H_test = zeros(NumberofHiddenNeurons, NumberofTestingData);
-
+        
         for i = 1 : NumberofTestingData
             for j = 1 : NumberofHiddenNeurons
                 temp = zeros(NumberofInputNeurons,1);
@@ -473,7 +597,7 @@ if Elm_Type == CLASSIFIER
     
     [winnerTrain LabelTrainPredicted] = max(Y);
     [winnerTest LabelTestPredicted] = max(TY);
-
+    
     LabelTrainPredicted = LabelTrainPredicted';
     LabelTrainPredicted = LabelTrainPredicted -1;
     LabelTestPredicted = LabelTestPredicted';
@@ -484,29 +608,29 @@ if Elm_Type == CLASSIFIER
     
     CCRTrain = CCR(ConfusionMatrixTrain)*100;
     CCRTest = CCR(ConfusionMatrixTest)*100;
-
+    
     MSTrain = Sensitivity(ConfusionMatrixTrain)*100;
     MSTest = Sensitivity(ConfusionMatrixTest)*100;
     
-%%%%%%%%%% Calculate training & testing classification accuracy
-%     MissClassificationRate_Training=0;
-%     MissClassificationRate_Testing=0;
-% 
-%     for i = 1 : size(T, 2)
-%         [x, label_index_expected]=max(T(:,i));
-%         [x, label_index_actual]=max(Y(:,i));
-%         if label_index_actual~=label_index_expected
-%             MissClassificationRate_Training=MissClassificationRate_Training+1;
-%         end
-%     end
-%     TrainingAccuracy=1-MissClassificationRate_Training/size(T,2);
-%     for i = 1 : size(TV.T, 2)
-%         [x, label_index_expected]=max(TV.T(:,i));
-%         [x, label_index_actual]=max(TY(:,i));
-%         if label_index_actual~=label_index_expected
-%             MissClassificationRate_Testing=MissClassificationRate_Testing+1;
-%         end
-%     end
-%     TestingAccuracy=1-MissClassificationRate_Testing/size(TV.T,2);  
+    %%%%%%%%%% Calculate training & testing classification accuracy
+    %     MissClassificationRate_Training=0;
+    %     MissClassificationRate_Testing=0;
+    %
+    %     for i = 1 : size(T, 2)
+    %         [x, label_index_expected]=max(T(:,i));
+    %         [x, label_index_actual]=max(Y(:,i));
+    %         if label_index_actual~=label_index_expected
+    %             MissClassificationRate_Training=MissClassificationRate_Training+1;
+    %         end
+    %     end
+    %     TrainingAccuracy=1-MissClassificationRate_Training/size(T,2);
+    %     for i = 1 : size(TV.T, 2)
+    %         [x, label_index_expected]=max(TV.T(:,i));
+    %         [x, label_index_actual]=max(TY(:,i));
+    %         if label_index_actual~=label_index_expected
+    %             MissClassificationRate_Testing=MissClassificationRate_Testing+1;
+    %         end
+    %     end
+    %     TestingAccuracy=1-MissClassificationRate_Testing/size(TV.T,2);
 end
-    
+
