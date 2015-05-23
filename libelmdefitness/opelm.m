@@ -1,6 +1,6 @@
 function [TrainingTime, ConfusionMatrixTrain, ConfusionMatrixTest, CCRTrain, MSTrain, CCRTest, MSTest...
     	NumberofInputNeurons,NumberofHiddenNeurons,NumberofHiddenNeuronsFinal,NumberofOutputNeurons,InputWeight,OutputWeight] = ...
-            opelm(train_data, test_data, Elm_Type, NumberofHiddenNeurons, ActivationFunction)
+            opelm(train_data, test_data, Elm_Type, NumberofHiddenNeurons, ActivationFunction,EE)
 
 %% PROCESS DATA
 

@@ -1,7 +1,7 @@
 %function [TrainingTime, TrainingAccuracy, TestingAccuracy] = ...
 function [TrainingTime, ConfusionMatrixTrain, ConfusionMatrixTest, CCRTrain, MSTrain, CCRTest, MSTest...
     NumberofInputNeurons,NumberofHiddenNeurons,NumberofHiddenNeuronsFinal,NumberofOutputNeurons,InputWeight,OutputWeight,pstar_train] = ...
-    em_elm(train_data, test_data, Elm_Type, NumberofHiddenNeurons, ActivationFunction,  wMin, wMax)
+    em_elm(train_data, test_data, Elm_Type, NumberofHiddenNeurons, ActivationFunction,  wMin, wMax,EE)
 %function [TrainingTime, TestingTime, TrainingAccuracy, TestingAccuracy] = elm(TrainingData_File, TestingData_File, Elm_Type, NumberofHiddenNeurons, ActivationFunction, normMin,normMax, wMin, wMax)
 
 % Usage: elm(TrainingData_File, TestingData_File, Elm_Type, NumberofHiddenNeurons, ActivationFunction)
@@ -321,6 +321,10 @@ end
 
 clear tempH;                                        %   Release the temnormMinrary array for calculation of hidden neuron output matrix H
 
+
+
+
+
 numpatterns = size(H,2);
 numhiddenneurons = size(H,1);
 
@@ -332,98 +336,168 @@ for i = 1 : numpatterns
     y(i) = mm;
 end
 
-arrayerrorthresold =  [0.5 0.4 0.3 0.2 0.15 0.12 0.1 0.08 0.06];
-cantthresolds = size(arrayerrorthresold,2);
 
 %y = species;
-numfolds = 5;
+numfolds = 2;
 c = cvpartition(y,'k',numfolds);
 bestthresold = -1;
 maxsumaCCR=-1;
+ini=3;
+numoutputneurons=size(T,1);
 
-for index = 1 : cantthresolds
+%Calculo error para 100 neuronas y para 3 neuronas
+aH=H;
+aBtemp= pinv(aH')*T';
+
+% aH*aBtemp
+% aH'*aBtemp
+% aH'*aBtemp'
+% aH*aBtemp'
+
+error100 = sum(sum(abs( aH'*aBtemp -T' ))) / (numpatterns*numoutputneurons);
+
+aH=H(1:ini,:);
+aBtemp= pinv(aH')*T';
+error3 = sum(sum(abs( aH'*aBtemp -T' ))) / (numpatterns*numoutputneurons);
+%numthresolds = 5;
+
+%arrayerrorthresold = zeros(numthresolds,1);
+%for i = 1: numthresolds
+%    arrayerrorthresold(i)= error3 - (i)*(error3-error100)/(numthresolds);
+%end
+%arrayerrorthresold
+
+%arrayerrorthresold = [0.2 0.15 0.1]; %[0.5 0.4 0.3 0.2 0.15 0.12 0.1 0.08 0.06];
+%cantthresolds = size(arrayerrorthresold,2);
+%numpatterns= size(H,2);
+%numoutputneurons=size(T,1);
+errors = ones(numfolds,NumberofHiddenNeurons)*1000000;
+ccrs = ones(numfolds,NumberofHiddenNeurons)*1000000;
+
+for indexfold = 1 : numfolds
     
-    errorthresold = arrayerrorthresold(index);
-    %BiasofHiddenNeuronsSub=BiasofHiddenNeurons(:,indicesT);
-    sumaCCR=0;
-    for indexfold = 1 : numfolds
-        
-        indicesC=(find(c.test(indexfold)==1));
-        indicesT=(find(c.test(indexfold)==0));        
-        
-        HSub=H(:,indicesT);
-        HSubC=H(:,indicesC);
-        TSub=T(:,indicesT);
-        CSub=T(:,indicesC);
-        
-        numpatterns= size(HSub,2);
-        numoutputneurons=size(TSub,1);
-        error = errorthresold+1; % para que entre la primera ves
-        i=3;
-        %BtempAnterior=0;
-        Btemp=-1;
-        ini=3;
-        while i <= NumberofHiddenNeurons && error > errorthresold
-            HTemporal = HSub(1:i-1,:)';
-            HTemporalC = HSubC(1:i-1,:);
-            if(i==ini)
-                HI=inv(HTemporal'*HTemporal)* HTemporal';
-            else
-                d =  HSub(i-1,:)';
-                D=((d'*((eye(numpatterns)-HTemporalAnterior'*HI)))') /(d'*((eye(numpatterns)-HTemporalAnterior'*HI))*d);
-                U= HI*(eye(numpatterns)-d*D') ;
-                HI = [U' D]' ;
-                %HI2 =  inverse1( HTemporalAnterior', HI', d);
-                %numpatterns
-                %numoutputneurons
-                %error=sum(sum(abs(HI-pinv( [HTemporalAnterior' d]  ))))/(size(HI,1)*size(HI,2))
-            end
-            
-           
-            Btemp= HI*TSub';
-            error = sum(sum(abs( HTemporal*Btemp -TSub' ))) / (numpatterns*numoutputneurons);
-            
-            NumberofHiddenNeuronsFinal=i;
-            i = i+1;
-            HTemporalAnterior =HTemporal';
+    indicesC=(find(c.test(indexfold)==1));
+    indicesT=(find(c.test(indexfold)==0));
+    
+    HSub=H(:,indicesT);
+    HSubC=H(:,indicesC);
+    TSub=T(:,indicesT);
+    CSub=T(:,indicesC);
+    
+    numpatterns= size(HSub,2);
+    numoutputneurons=size(TSub,1);
+%    error = errorthresold+1; % para que entre la primera ves
+    i=3;
+    %BtempAnterior=0;
+    Btemp=-1;
+    ini=3;
+    for i=ini : NumberofHiddenNeurons
+        HTemporal = HSub(1:i-1,:)';
+        HTemporalC = HSubC(1:i-1,:);
+        if(i==ini)
+            HI=inv(HTemporal'*HTemporal)* HTemporal';
+        else
+            d =  HSub(i-1,:)';
+            D=((d'*((eye(numpatterns)-HTemporalAnterior'*HI)))') /(d'*((eye(numpatterns)-HTemporalAnterior'*HI))*d);
+            U= HI*(eye(numpatterns)-d*D') ;
+            HI = [U' D]' ;
+            %HI2 =  inverse1( HTemporalAnterior', HI', d);
+            %numpatterns
+            %numoutputneurons
+            %error=sum(sum(abs(HI-pinv( [HTemporalAnterior' d]  ))))/(size(HI,1)*size(HI,2))
         end
         
-        % calcular CCR  sobre el conjunto de comprobación
-        aB =  Btemp;
         
-        % if(i <= NumberofHiddenNeurons && i~=ini+1)
-        %     aB= BtempAnterior;
-        % else
-        %     aB=  Btemp;
-        % end
+        Btemp= HI*TSub';
+        error = sum(sum(abs( HTemporal*Btemp -TSub' ))) / (numpatterns*numoutputneurons);
+        errors(indexfold,i)= error;
         
-        aYTest= (HTemporalC'*aB)';
+        NumberofHiddenNeuronsFinal=i;
+        HTemporalAnterior =HTemporal';
+        
+        
+         aYTest= (HTemporalC'*Btemp)';
         [winnerTrain LabelTrainPredictedTemp] = max(aYTest);
         [ff targets] = max(CSub);
         CM = confmat(targets'-1,LabelTrainPredictedTemp'-1);
         aCCR = CCR(CM);
-        sumaCCR=sumaCCR+aCCR;
-        
+        ccrs(indexfold,i) = aCCR;
     end
     
-    CCRtotal= sumaCCR/numfolds;
-    if(CCRtotal>maxsumaCCR)
-        maxsumaCCR=CCRtotal;
-        bestthresold=errorthresold;
+    % calcular CCR  sobre el conjunto de comprobación
+    aB =  Btemp;
+    
+    % if(i <= NumberofHiddenNeurons && i~=ini+1)
+    %     aB= BtempAnterior;
+    % else
+    %     aB=  Btemp;
+    % end
+    
+    
+    
+end
+
+
+
+
+positions= ones(numfolds,1)*ini;  % neurona por la que va
+%currenterror = max(errors(:,ini));
+maxCCR= -1    ;%sum(ccrs(:,ini));
+bestthresold =-1;
+
+
+g=0;
+
+
+for cont = 1 : (NumberofHiddenNeurons-ini)*numfolds
+    
+    % mover las posiciones
+         %se calcula el menor de los siguientes errores de cada fold
+         pos=-1;
+         mineerror=1000000000000;
+         for j = 1 : numfolds
+             if(positions(j)< NumberofHiddenNeurons)
+                 %ccrs(j,positions(j)+1)
+                 if(mineerror>errors(j,positions(j)+1))
+                     mineerror=errors(j,positions(j)+1);
+                     pos=j;
+                 end
+             end
+         end
+         %(NumberofHiddenNeurons-ini+1)*numfolds
+         %g=g+1
+         %if(pos==-1)
+         %    gfhf;
+         %end
+         %pos;
+         positions(pos)=positions(pos)+1;
+    %calcular el ccr
+    ccrsum=0;
+    for j = 1 : numfolds
+        ccrsum = ccrsum+ccrs(j,positions(j));
+    end
+    if(maxCCR<ccrsum)
+        maxCCR=ccrsum;
+        bestthresold= mineerror;
+        %positions
     end
 end
 
+
+%ccrs(:,ini)
+%ccrs(:,100)
+
 %termine de estimar el thresold
-errorthresold=bestthresold
+errorthresold=bestthresold;
 
 
 
 
-
-
+ini=3;
 numpatterns= size(H,2);
 numoutputneurons=size(T,1);
 error = errorthresold+1;
+i= ini;
 while i <= NumberofHiddenNeurons && error > errorthresold
     HTemporal = H(1:i-1,:)';
     if(i==ini)

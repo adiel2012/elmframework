@@ -1,7 +1,7 @@
 %function [TrainingTime, TrainingAccuracy, TestingAccuracy] = ...
 function [TrainingTime, ConfusionMatrixTrain, ConfusionMatrixTest, CCRTrain, MSTrain, CCRTest, MSTest...
     	NumberofInputNeurons,NumberofHiddenNeurons,NumberofHiddenNeuronsFinal,NumberofOutputNeurons,InputWeight,OutputWeight,pstar_train] = ...
-    ielm(train_data, test_data, Elm_Type, NumberofHiddenNeurons, ActivationFunction,  wMin, wMax)
+    ielm(train_data, test_data, Elm_Type, NumberofHiddenNeurons, ActivationFunction,  wMin, wMax,EE)
 
 % esta variable la utilizan y la asigne asi
 MaxNumberofHiddenNeurons = NumberofHiddenNeurons;
@@ -142,9 +142,9 @@ MAXRESIDUALERROR = 0.6;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%TRAINING
 LASTERROR = 100000000000;
-UMBRALERROR = 0.7;
+UMBRALERROR = 0.3;
 %   ESTE ES EL CODIGO INSERTADO
-while L<MaxNumberofHiddenNeurons && LASTERROR<UMBRALERROR
+while L<MaxNumberofHiddenNeurons && LASTERROR>UMBRALERROR
     
 starting_cpu=cputime;
 

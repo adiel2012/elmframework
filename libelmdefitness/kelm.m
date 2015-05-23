@@ -1,7 +1,19 @@
 %function [TrainingTime, TrainingAccuracy, TestingAccuracy] = ...
 function [TrainingTime, ConfusionMatrixTrain, ConfusionMatrixTest, CCRTrain, MSTrain, CCRTest, MSTest...
     	NumberofInputNeurons,NumberofHiddenNeurons,NumberofHiddenNeuronsFinal,NumberofOutputNeurons,InputWeight,OutputWeight,pstar_train] = ...
-    ldaelm(train_data, test_data, Elm_Type, NumberofHiddenNeurons, ActivationFunction,  wMin, wMax)
+    kelm(train_data, test_data, Elm_Type, NumberofHiddenNeurons, ActivationFunction,  wMin, wMax,EE)
+
+Kernel_type = EE.Kernel_type;
+Kernel_para = EE.Kernel_para;% [1];
+C= EE.C;% 0.1;
+
+
+include_borders = EE.include_borders ;
+include_k_clusters = EE.include_k_clusters ;
+
+
+
+InputWeight = -1; 
 
 
 %%%%%%%%%%% Macro definition
@@ -89,65 +101,43 @@ end                                                 %   end if of Elm_Type
 %%%%%%%%%%% Calculate weights & biases
 %start_time_train=cputime;
 tStart = tic;
+n = size(T,2);
+NumberofHiddenNeuronsFinal = n;
 
-%------Perform log(P) calculation once for UP
-if strcmp(ActivationFunction, 'up')
-    P = log(P);
-    TV.P = log(TV.P);
+
+
+Kernelsextended = P';
+
+if(include_borders==1)
+    %size(eye(size(XTrain,2)))
+   % XTrain
+   Kernelsextended = [Kernelsextended; 2*eye(size(XTrain,2))-1] 
+   n=n+ size(XTrain,2);
 end
 
-%%%%%%%%%%% Calculate the hidden node output (training)
 
 
+Omega_train = kernel_matrix(P',Kernelsextended,Kernel_type, Kernel_para);
+OutputWeight=((Omega_train+speye(n)/C)\(T')); 
+TrainingTime=toc;
 
-tg = T';
-[FF,CC] = size(tg);
-gnd = zeros(FF,1);
-for ind=1:FF
-   gnd(ind) = find( tg(ind,:)==1,1) ; 
-end
-   options = [];
-    options.Fisherface = 1;
-   % options.Regu = 1;
-     options.PCARatio = 0.9; % el 90 porciento de la varianza
-   [eigvector, eigvalue] = LDA(gnd', options, P');       
-   InputWeight2 = eigvector';      
-   NumberofHiddenNeuronsFinal = size(eigvalue);
-   NumberofHiddenNeuronsFinal = NumberofHiddenNeuronsFinal(1) ;
-    InputWeight  = [InputWeight' InputWeight2']';
-   tempH=InputWeight*P;
- 
-   NumberofHiddenNeuronsFinal = NumberofHiddenNeuronsFinal+nh;
+%%%%%%%%%%% Calculate the training output
+Y=(Omega_train * OutputWeight)'; 
 
-   
-   %  tempH = [tempH' atempH']';
-  % size(tempH)
-  
-  %fgf
-        
-%%%%%%%%%%% Calculate hidden neuron output matrix H
-switch lower(ActivationFunction)
-    case {'sig','sigmoid'}
-        %%%%%%%% Sigmoid 
-        H = 1 ./ (1 + exp(-tempH));
-        %%%%%%%% More activation functions can be added here
-    case {'up'}
-        %%%%%%%% Product Unit
-        H = exp(tempH);
-        %%%%%%%%
-     
-end
-%COMENTADO clear P;
 
-clear tempH;                                        %   Release the temnormMinrary array for calculation of hidden neuron output matrix H
 
 
 %%%%%%%%%%% Calculate output weights OutputWeight (beta_i)
-OutputWeight=pinv(H') * T';                        % slower implementation
+%OutputWeight=pinv(H') * T';                        % slower implementation
 TrainingTime = toc(tStart);
 
 %%%%%%%%%%% Calculate the training accuracy
-Y=(H' * OutputWeight)';                             %   Y: the actual output of the training data
+%Y=(H' * OutputWeight)';                             %   Y: the actual output of the training data
+
+
+
+
+
 if Elm_Type == REGRESSION
     TrainingAccuracy=sqrt(mse(T - Y));               %   Calculate training accuracy (RMSE) for regression case
 end
@@ -156,22 +146,8 @@ clear H;
 %%%%%%%%%%% Calculate the output of testing input
 start_time_test=cputime;
 
-%%%%%%%%%%% Calculate the Hidden node output 
-tempH_test=InputWeight*TV.P;
-
-switch lower(ActivationFunction)
-    case {'sig','sigmoid'}
-        %%%%%%%% Sigmoid 
-       H_test = 1 ./ (1 + exp(-tempH_test));
-    case {'up'}
-        %%%%%%%% Product Unit
-        H_test = exp(-tempH_test);
-end
-
-clear TV.P;             %   Release input of testing data
-
-
-TY=(H_test' * OutputWeight)';                       %   TY: the actual output of the testing data
+Omega_test = kernel_matrix(P',Kernelsextended,Kernel_type, Kernel_para,TV.P');
+TY=(Omega_test' * OutputWeight)';                            %   TY: the actual output of the testing data
 
 end_time_test=cputime;
 TestingTime=end_time_test-start_time_test;           %   Calculate CPU time (seconds) spent by ELM predicting the whole testing data
@@ -202,3 +178,61 @@ if Elm_Type == CLASSIFIER
     MSTest = Sensitivity(ConfusionMatrixTest)*100;
 end
     
+
+
+
+
+
+function omega = kernel_matrix(Xtrain,Kernelsextended,kernel_type, kernel_pars,Xt)
+
+nb_data = size(Kernelsextended,1);
+
+
+if strcmp(kernel_type,'RBF_kernel'),
+    if nargin<5,
+        XXh = sum(Kernelsextended.^2,2)*ones(1,nb_data);
+        omega = XXh+XXh'-2*(Xtrain*Xtrain');
+        omega = exp(-omega./kernel_pars(1));
+    else
+        XXh1 = sum(Xtrain.^2,2)*ones(1,size(Xt,1));
+        XXh2 = sum(Xt.^2,2)*ones(1,nb_data);
+        omega = XXh1+XXh2' - 2*Xtrain*Xt';
+        omega = exp(-omega./kernel_pars(1));
+    end
+    
+elseif strcmp(kernel_type,'lin_kernel')
+    if nargin<5,
+        omega = Xtrain*Xtrain';
+    else
+        omega = Xtrain*Xt';
+    end
+    
+elseif strcmp(kernel_type,'poly_kernel')
+    if nargin<5,
+        omega = (Xtrain*Xtrain'+kernel_pars(1)).^kernel_pars(2);
+    else
+        omega = (Xtrain*Xt'+kernel_pars(1)).^kernel_pars(2);
+    end
+    
+elseif strcmp(kernel_type,'wav_kernel')
+    if nargin<5,
+        XXh = sum(Xtrain.^2,2)*ones(1,nb_data);
+        omega = XXh+XXh'-2*(Xtrain*Xtrain');
+        
+        XXh1 = sum(Xtrain,2)*ones(1,nb_data);
+        omega1 = XXh1-XXh1';
+        omega = cos(kernel_pars(3)*omega1./kernel_pars(2)).*exp(-omega./kernel_pars(1));
+        
+    else
+        XXh1 = sum(Xtrain.^2,2)*ones(1,size(Xt,1));
+        XXh2 = sum(Xt.^2,2)*ones(1,nb_data);
+        omega = XXh1+XXh2' - 2*(Xtrain*Xt');
+        
+        XXh11 = sum(Xtrain,2)*ones(1,size(Xt,1));
+        XXh22 = sum(Xt,2)*ones(1,nb_data);
+        omega1 = XXh11-XXh22';
+        
+        omega = cos(kernel_pars(3)*omega1./kernel_pars(2)).*exp(-omega./kernel_pars(1));
+    end
+end
+

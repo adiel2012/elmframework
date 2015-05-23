@@ -1,4 +1,4 @@
-function [TrainingTime, TrainingAccuracy, TestingAccuracy] = I-ELM(TrainingData_File, TestingData_File, MaxNumberofHiddenNeurons, ActivationFunction, Problem_Type)
+function [TrainingTime, TrainingAccuracy, TestingAccuracy] = I-ELM(TrainingData_File, TestingData_File, MaxNumberofHiddenNeurons, ActivationFunction, Problem_Type,EE)
 
 % Input:
 % TrainingData_File     - Filename of training data set

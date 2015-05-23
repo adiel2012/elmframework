@@ -5,7 +5,11 @@
 %find(cv.test==1)
 
 
-load fisheriris;
-y = species;
-c = cvpartition(y,'k',5)
-[c.test(1) c.test(2) c.test(3) c.test(4) c.test(5)]
+%load fisheriris;
+%y = species;
+%c = cvpartition(y,'k',5)
+%[c.test(1) c.test(2) c.test(3) c.test(4) c.test(5)]
+
+m=magic(5);
+
+m([1 2 3 4]',[1 2 3 4]')

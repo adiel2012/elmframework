@@ -110,6 +110,15 @@ if (EE.elm)
       
 end
 
+%% ORIGINAL ELM
+if (EE.trashelm)
+    
+    disp(['TRASH ELM']);
+    EE.elmAlgorithm = 'trashelm';    
+    logLevel = 2;
+    eelm_experiment(EE,train_data,test_data,logLevel);   
+end
+
 %% PCA-ELM
 if (EE.pcaelm)
     
@@ -135,6 +144,16 @@ if (EE.pcaldaelm)
     
     disp(['PCA-LDA-ELM']);
     EE.elmAlgorithm = 'pcaldaelm';
+    logLevel = 2;
+    eelm_experiment(EE,train_data,test_data,logLevel);
+      
+end
+
+%% PCA-LDA-ELM
+if (EE.kelm)
+    
+    disp(['K-ELM']);
+    EE.elmAlgorithm = 'kelm';
     logLevel = 2;
     eelm_experiment(EE,train_data,test_data,logLevel);
       
